@@ -179,7 +179,12 @@ module.exports = function (grunt) {
         }
       },
       angular: {
-        src:['vendor/angular/angular.js', 'vendor/angular-ui-router/release/angular-ui-router.min.js', 'vendor/angular-animate/angular-animate.min.js'],
+        src:[
+		'vendor/angular/angular.js',
+		'vendor/angular-ui-router/release/angular-ui-router.min.js',
+		'vendor/angular-animate/angular-animate.min.js',
+		'vendor/angular-facebook/lib/angular-facebook.js'
+	],
         dest: '<%= distdir %>/js/angular.js'
       },
       mongo: {

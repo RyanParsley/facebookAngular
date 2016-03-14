@@ -1,5 +1,5 @@
 doctype html
-html(lang='en', ng-app='app')
+html(lang='en', ng-app='app') 
   head
     base(href='/')
 
@@ -20,7 +20,9 @@ html(lang='en', ng-app='app')
     .page-wrapper
       .header-wrap(ng-include="'page-header/page-header.tpl.jade'")
       .app-wrapper
+         button(type="button" class="btn btn-primary btn-large" data-ng-show="!logged" data-ng-disabled="!facebookReady" data-ng-click="IntentLogin()") Login with Facebook
+         button(type="button" class="btn btn-danger btn-large" data-ng-show="logged" data-ng-disabled="!facebookReady" data-ng-click="logout()") Logout
          .app-view
            .info-container
              div(ng-include="'preview/preview.tpl.jade'")
-      .footer-wrap
+    .footer-wrap
