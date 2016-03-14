@@ -1,8 +1,8 @@
 angular.module('app', [
-	'facebook',
-	'page-header',
-	'ui.router',
-	'templates.app'
+  'facebook',
+  'page-header',
+  'ui.router',
+  'templates.app'
 ])
 // This next line makes ui-router work when ui-view is nested in other modules.
 // It seems to be needed due to a bug in ui-router. Perhaps we can remove it later.
@@ -13,170 +13,163 @@ angular.module('app', [
 //
 .run(function($state){})
 
-
 .factory('categoryData', function() {
-	'use strict';
-	return { message: 'default value' };
+  'use strict';
+  return { message: 'default value' };
 })
 
 .config(function($stateProvider, $urlRouterProvider, $locationProvider, FacebookProvider) {
-	'use strict';
+  'use strict';
 
-	// For any unmatched url, redirect to /state1
+  // For any unmatched url, redirect to /state1
 
-	$urlRouterProvider.otherwise('/index');
-	// Now set up the states
+  $urlRouterProvider.otherwise('/index');
+  // Now set up the states
 
-	$stateProvider
-	.state('state1', {
-		url: '/index',
-		templateUrl: 'state/state1.tpl.html',
-		controller: 'stateCtrl'
-	});
-	// use the HTML5 History API
-	$locationProvider.html5Mode(true);
-	// Set your appId through the setAppId method or
-	// use the shortcut in the initialize method directly.
-	FacebookProvider.init('1707981519425919');
+  $stateProvider
+  .state('state1', {
+    url: '/index',
+    templateUrl: 'state/state1.tpl.html',
+    controller: 'stateCtrl'
+  });
+  // use the HTML5 History API
+  $locationProvider.html5Mode(true);
+  // Set your appId through the setAppId method or
+  // use the shortcut in the initialize method directly.
+  FacebookProvider.init('1707981519425919');
 })
 
-.controller('AppCtrl', function(){
-	'$scope',
-	'$timeout',
-	'Facebook',
-	function($scope, $timeout, Facebook) {
+.controller('AppCtrl', function($scope, $timeout, Facebook){
+  'use strict';
 
-		// Define user empty data :/
-		$scope.user = {};
+  // Define user empty data :/
+  $scope.user = {};
 
-		// Defining user logged status
-		$scope.logged = false;
+  // Defining user logged status
+  $scope.logged = false;
 
-		// And some fancy flags to display messages upon user status change
-		$scope.byebye = false;
-		$scope.salutation = false;
+  // And some fancy flags to display messages upon user status change
+  $scope.byebye = false;
+  $scope.salutation = false;
 
-		/**
-		 * Watch for Facebook to be ready.
-		 * There's also the event that could be used
-		 */
-		$scope.$watch(
-			function() {
-			return Facebook.isReady();
-			},
-			function(newVal) {
-			if (newVal)
-			$scope.facebookReady = true;
-			}
-			);
+  /**
+   * Watch for Facebook to be ready.
+   * There's also the event that could be used
+   */
+  $scope.$watch(
+    function() {
+    return Facebook.isReady();
+  },
+  function(newVal) {
+    if (newVal){
+      $scope.facebookReady = true;
+    }
+  });
 
-		var userIsConnected = false;
-		Facebook.getLoginStatus(function(response) {
-			if (response.status == 'connected') {
-				userIsConnected = true;
-			}
-		});
+  var userIsConnected = false;
+  Facebook.getLoginStatus(function(response) {
+    if (response.status === 'connected') {
+      userIsConnected = true;
+    }
+  });
 
-		/**
-		 * IntentLogin
-		 */
-		$scope.IntentLogin = function() {
-			if(!userIsConnected) {
-				$scope.login();
-			}
-		};
+  /**
+   * IntentLogin
+   */
+  $scope.IntentLogin = function() {
+    if(!userIsConnected) {
+      $scope.login();
+    }
+  };
 
-		/**
-		 * Login
-		 */
-		$scope.login = function() {
-			Facebook.login(function(response) {
-					if (response.status == 'connected') {
-					$scope.logged = true;
-					$scope.me();
-					}
+  /**
+   * Login
+   */
+  $scope.login = function() {
+    Facebook.login(function(response) {
+      if (response.status === 'connected') {
+        $scope.logged = true;
+        $scope.me();
+      }
+    });
+  };
 
-					});
-		};
+  /**
+   * me
+   */
+  $scope.me = function() {
+    Facebook.api('/me', function(response) {
+      /**
+       * Using $scope.$apply since this happens outside angular framework.
+       */
+      $scope.$apply(function() {
+        $scope.user = response;
+      });
 
-		/**
-		 * me 
-		 */
-		$scope.me = function() {
-			Facebook.api('/me', function(response) {
-					/**
-					 * Using $scope.$apply since this happens outside angular framework.
-					 */
-					$scope.$apply(function() {
-						$scope.user = response;
-						});
+    });
+  };
 
-					});
-		};
+  /**
+   * Logout
+   */
+  $scope.logout = function() {
+    Facebook.logout(function() {
+      $scope.$apply(function() {
+        $scope.user   = {};
+        $scope.logged = false;
+      });
+    });
+  };
 
-		/**
-		 * Logout
-		 */
-		$scope.logout = function() {
-			Facebook.logout(function() {
-					$scope.$apply(function() {
-						$scope.user   = {};
-						$scope.logged = false;  
-						});
-					});
-		}
+  /**
+   * Taking approach of Events :D
+   */
+  $scope.$on('Facebook:statusChange', function(ev, data) {
+    console.log('Status: ', data);
+    if (data.status === 'connected') {
+      $scope.$apply(function() {
+        $scope.salutation = true;
+        $scope.byebye     = false;
+      });
+    } else {
+      $scope.$apply(function() {
+        $scope.salutation = false;
+        $scope.byebye     = true;
 
-		/**
-		 * Taking approach of Events :D
-		 */
-		$scope.$on('Facebook:statusChange', function(ev, data) {
-				console.log('Status: ', data);
-				if (data.status == 'connected') {
-				$scope.$apply(function() {
-					$scope.salutation = true;
-					$scope.byebye     = false;    
-					});
-				} else {
-				$scope.$apply(function() {
-					$scope.salutation = false;
-					$scope.byebye     = true;
-
-					// Dismiss byebye message after two seconds
-					$timeout(function() {
-						$scope.byebye = false;
-						}, 2000)
-					});
-				}
-
-
-				});
-
-
-	}
+        // Dismiss byebye message after two seconds
+        $timeout(function() {
+          $scope.byebye = false;
+        }, 2000);
+      });
+    }
+  });
 })
 
 .controller('authenticationCtrl', function($scope, Facebook) {
+  'use strict';
 
-		$scope.login = function() {
-		// From now on you can use the Facebook service just as Facebook api says
-		Facebook.login(function(response) {
-			// Do something with response.
-			});
-		};
+  $scope.login = function() {
 
-		$scope.getLoginStatus = function() {
-		Facebook.getLoginStatus(function(response) {
-			if(response.status === 'connected') {
-			$scope.loggedIn = true;
-			} else {
-			$scope.loggedIn = false;
-			}
-			});
-		};
+    // From now on you can use the Facebook service just as Facebook api says
+    Facebook.login(function(response) {
+      // Do something with response.
+      console.log('Facebook response: ', response);
+    });
+  };
 
-		$scope.me = function() {
-		Facebook.api('/me', function(response) {
-			$scope.user = response;
-			});
-		};
+  $scope.getLoginStatus = function() {
+    Facebook.getLoginStatus(function(response) {
+      if(response.status === 'connected') {
+        $scope.loggedIn = true;
+      } else {
+        $scope.loggedIn = false;
+      }
+    });
+  };
+
+  $scope.me = function() {
+    Facebook.api('/me', function(response) {
+      $scope.user = response;
+    });
+  };
 });
